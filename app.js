@@ -156,6 +156,97 @@ function stopAutoBackup() {
   console.log("✅ Auto-backup stopped.");
 }
 
+// === MEDIA CAPTURE ===
+window.capturePhoto = () => document.getElementById("photoInput").click();
+window.captureVideo = () => document.getElementById("videoInput").click();
+
+window.addTextNote = function () {
+  const note = prompt("Enter your note:");
+  if (note) {
+    navigator.geolocation.getCurrentPosition(position => {
+      routeData.push({
+        type: "text",
+        timestamp: Date.now(),
+        coords: { lat: position.coords.latitude, lng: position.coords.longitude },
+        content: note
+      });
+      alert("Note saved.");
+    });
+  }
+};
+
+window.startAudioRecording = function () {
+  navigator.mediaDevices.getUserMedia({ audio: true })
+    .then(stream => {
+      mediaRecorder = new MediaRecorder(stream);
+      audioChunks = [];
+
+      mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+        const reader = new FileReader();
+        reader.onload = () => {
+          navigator.geolocation.getCurrentPosition(pos => {
+            routeData.push({
+              type: "audio",
+              timestamp: Date.now(),
+              coords: { lat: pos.coords.latitude, lng: pos.coords.longitude },
+              content: reader.result
+            });
+            alert("Audio saved.");
+          });
+        };
+        reader.readAsDataURL(audioBlob);
+      };
+
+      mediaRecorder.start();
+      setTimeout(() => mediaRecorder.stop(), 5000);
+    })
+    .catch(() => alert("Microphone access denied"));
+};
+
+// === MEDIA INPUT EVENTS ===
+window.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("photoInput").addEventListener("change", e => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        navigator.geolocation.getCurrentPosition(pos => {
+          routeData.push({
+            type: "photo",
+            timestamp: Date.now(),
+            coords: { lat: pos.coords.latitude, lng: pos.coords.longitude },
+            content: reader.result
+          });
+          alert("Photo saved.");
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  document.getElementById("videoInput").addEventListener("change", e => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        navigator.geolocation.getCurrentPosition(pos => {
+          routeData.push({
+            type: "video",
+            timestamp: Date.now(),
+            coords: { lat: pos.coords.latitude, lng: pos.coords.longitude },
+            content: reader.result
+          });
+          alert("Video saved.");
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+});
+
+
 // === CONFIRM ON LEAVE PAGE ===
 window.addEventListener("beforeunload", function (e) {
   if (trackingActive && routeData.length > 0) {
