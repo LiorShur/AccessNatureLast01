@@ -27,7 +27,7 @@ body {
   border-bottom: 1px solid #ccc;
 }
 
-/* .button-row {
+  .button-row {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -38,8 +38,8 @@ body {
 }
  
 .button-row button {
-  flex: 1 1 auto; /* ✅ Let buttons shrink a bit if needed */
-  min-width: 80px; /* ✅ Minimum width for touch comfort */
+  flex: 1 1 auto; /* ✅ Let buttons shrink a bit if needed 
+  min-width: 80px; /* ✅ Minimum width for touch comfort 
   margin: 6px;
   padding: 5px 5px;
   font-size: 16px;
