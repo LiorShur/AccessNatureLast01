@@ -10,7 +10,7 @@ body {
   padding: 0px;
   text-align: center;
   font-size: 1em;
-/*   font-weight: bold; */
+  font-weight: bold; 
 }
 
 #map {
@@ -38,8 +38,8 @@ body {
 }
  
 .button-row button {
-  flex: 1 1 auto; /* ✅ Let buttons shrink a bit if needed 
-  min-width: 80px; /* ✅ Minimum width for touch comfort 
+  flex: 1 1 auto; 
+  min-width: 80px; 
   margin: 6px;
   padding: 5px 5px;
   font-size: 16px;
