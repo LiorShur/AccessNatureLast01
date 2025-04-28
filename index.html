@@ -1,91 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Nature Tracker 🌿</title>
-
-  <!-- CSS -->
-  <link rel="stylesheet" href="styles.css">
-
-  <!-- Google Maps JS -->
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB4IoUFBPNGtVySKpFoqE9VITvGV7nkLHw&callback=initMap" async defer></script>
-
-  <!-- jsPDF for PDF export -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-  <!-- JSZip for ZIP exports -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Access Nature</title>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.7.1/dist/jszip.min.js"></script>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <header id="header">
+    <h1>🌿 Access Nature 🌿</h1>
+  </header>
 
-<h1>🌿 Nature Tracker</h1>
-
-<div id="floatingStats">
-  ⏱️ <span id="liveTimer">00:00:00</span> | 📏 <span id="liveDistance">0.00 km</span>
-</div>
-
-<div id="controls">
-
-  <div class="row">
-    <button onclick="startTracking()">▶️ Start</button>
-    <button onclick="togglePause()" id="pauseButtonLabel">Pause</button>
-    <button onclick="stopTracking()">⏹️ Stop</button>
+  <div id="map"></div>
+  <div id="liveStats">
+  <div>Time: <span id="liveTimer">00:00:00</span></div>
+  <div>Distance: <span id="liveDistance">0.00 km</span></div>
   </div>
 
-  <div class="row">
-    <button onclick="exportRouteSummary()">📦 Export Summary</button>
-    <button onclick="exportAllRoutes()">🌍 Export Explorer</button>
-    <button onclick="openHistory()">📜 Past Routes</button>
-  </div>
+  <div id="controls">
+    <div class="stats-row">
+      ⏱ <span id="timer">00:00:00</span> |
+      📏 <span id="distance">0.00 km</span>
+    </div>
 
-  <div class="row">
+    <div class="button-row green">
+      <button onclick="startTracking()">▶️ Start</button>
+      <button onclick="togglePause()"><span id="pauseButtonLabel">⏸ Pause</span></button>
+      <button onclick="stopTracking()">⏹ Stop</button>
+    </div>
+    
+    <div class="button-row blue">
     <button onclick="addTextNote()">📝 Note</button>
-    <button onclick="capturePhoto()">📷 Photo</button>
-  </div>
+    <button onclick="capturePhoto()">📸 Photo</button>
+<!--<button onclick="startAudioRecording()">🎤 Audio</button>
+    <button onclick="captureVideo()">🎥 Video</button> -->
+    </div>
+    <div class="button-row blue">
+      <button onclick="showRouteDataOnMap()">📍 Show Map Notes</button>
+    </div>
+    <div class="button-row orange">
+    <button onclick="exportRouteSummary()">📦 Export Route Summary</button>
+    <button onclick="exportAllRoutes()">🌍 Export All Routes & Explorer</button>
+    <button onclick="window.open('explorer.html')">Routes Explorer Page</button>
+    </div>
+    
+    <div class="button-row orange">
+      <button onclick="saveSession()">💾 Save</button>
+      <button onclick="generateShareableLink()">🔗 Share</button>
+    </div>
 
-  <div class="row">
-    <button onclick="showRouteDataOnMap()">🗺️ Show Map Notes</button>
-  </div>
-
-  <div class="row">
-    <button onclick="saveSession()">💾 Save</button>
-    <button onclick="generateShareableLink()">🔗 Share</button>
-  </div>
-
-  <div class="row">
-    <button onclick="exportData()">💾 JSON</button>
-    <button onclick="exportGPX()">📍 GPX</button>
-    <button onclick="exportPDF()">📄 PDF</button>
-  </div>
-
-  <div class="row">
-    <button onclick="toggleDarkMode()">🌙 Toggle Dark Mode</button>
-    <button onclick="clearAllSessions()">🗑️ Clear All Routes</button>
-  </div>
-
+    <div class="button-row gray">
+      <button onclick="exportData()">📄 JSON</button>
+      <button onclick="exportPDF()">📄 PDF</button>
+      <button onclick="exportGPX()">📍 GPX</button>
+    </div> 
+    <div class="button-row">
+  <button onclick="openHistory()">View Past Routes</button>
 </div>
 
-<!-- Hidden Inputs for Media -->
-<input type="file" accept="image/*" id="photoInput" capture="environment" style="display:none">
-<input type="file" accept="video/*" id="videoInput" capture="environment" style="display:none">
-
-<div id="map"></div>
-
-<!-- Saved Sessions Section -->
-<h2>Saved Routes:</h2>
-<ul id="savedSessionsList"></ul>
-
-<!-- Past History Panel (Hidden initially) -->
 <div id="historyPanel" style="display:none;">
-  <h2>📜 Past Sessions</h2>
+  <h3>Past Sessions</h3>
   <ul id="historyList"></ul>
   <button onclick="closeHistory()">Close</button>
 </div>
+<div class="button-row">
+  <button onclick="clearAllSessions()">🗑️ Clear All Saved Routes</button>
+</div>
 
-<!-- JS App -->
-<script src="appnew.js"></script>
+<div class="button-row">
+  <button onclick="toggleDarkMode()">🌙☀️ Dark/Light Mode</button>
+</div>
 
+  <div class="sessions">
+      <h3>📂 Saved Routes</h3>
+      <ul id="savedSessionsList"></ul>
+    </div>
+  </div>
+
+  <input type="file" accept="image/*" capture="environment" id="photoInput" style="display: none" />
+  <input type="file" accept="video/*" capture id="videoInput" style="display: none" />
+
+  <script src="app.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB4IoUFBPNGtVySKpFoqE9VITvGV7nkLHw&callback=initMap"
+    async defer></script>
 </body>
 </html>
