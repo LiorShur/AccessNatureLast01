@@ -95,7 +95,6 @@ window.stopTracking = function () {
 
   resetApp();
 };
-
 // === PAUSE / RESUME ===
 window.togglePause = function () {
   isPaused = !isPaused;
@@ -135,6 +134,7 @@ function updateDistanceDisplay() {
   document.getElementById("distance").textContent = totalDistance.toFixed(2) + " km";
   document.getElementById("liveDistance").textContent = totalDistance.toFixed(2) + " km";
 }
+
 // === BACKUP LOGIC ===
 function startAutoBackup() {
   autoSaveInterval = setInterval(() => {
@@ -145,109 +145,18 @@ function startAutoBackup() {
         elapsedTime
       };
       localStorage.setItem("route_backup", JSON.stringify(backupData));
-      console.log("🔄 Auto-backed up session.");
+      console.log("🔄 Auto-backup updated.");
     }
-  }, 20000); // Every 20 seconds
+  }, 20000);
 }
 
 function stopAutoBackup() {
   clearInterval(autoSaveInterval);
   localStorage.removeItem("route_backup");
-  console.log("✅ Auto-backup stopped.");
+  console.log("✅ Auto-backup stopped and cleared.");
 }
 
-// === MEDIA CAPTURE ===
-window.capturePhoto = () => document.getElementById("photoInput").click();
-window.captureVideo = () => document.getElementById("videoInput").click();
-
-window.addTextNote = function () {
-  const note = prompt("Enter your note:");
-  if (note) {
-    navigator.geolocation.getCurrentPosition(position => {
-      routeData.push({
-        type: "text",
-        timestamp: Date.now(),
-        coords: { lat: position.coords.latitude, lng: position.coords.longitude },
-        content: note
-      });
-      alert("Note saved.");
-    });
-  }
-};
-
-window.startAudioRecording = function () {
-  navigator.mediaDevices.getUserMedia({ audio: true })
-    .then(stream => {
-      mediaRecorder = new MediaRecorder(stream);
-      audioChunks = [];
-
-      mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
-      mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
-        const reader = new FileReader();
-        reader.onload = () => {
-          navigator.geolocation.getCurrentPosition(pos => {
-            routeData.push({
-              type: "audio",
-              timestamp: Date.now(),
-              coords: { lat: pos.coords.latitude, lng: pos.coords.longitude },
-              content: reader.result
-            });
-            alert("Audio saved.");
-          });
-        };
-        reader.readAsDataURL(audioBlob);
-      };
-
-      mediaRecorder.start();
-      setTimeout(() => mediaRecorder.stop(), 5000);
-    })
-    .catch(() => alert("Microphone access denied"));
-};
-
-// === MEDIA INPUT EVENTS ===
-window.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("photoInput").addEventListener("change", e => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        navigator.geolocation.getCurrentPosition(pos => {
-          routeData.push({
-            type: "photo",
-            timestamp: Date.now(),
-            coords: { lat: pos.coords.latitude, lng: pos.coords.longitude },
-            content: reader.result
-          });
-          alert("Photo saved.");
-        });
-      };
-      reader.readAsDataURL(file);
-    }
-  });
-
-  document.getElementById("videoInput").addEventListener("change", e => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        navigator.geolocation.getCurrentPosition(pos => {
-          routeData.push({
-            type: "video",
-            timestamp: Date.now(),
-            coords: { lat: pos.coords.latitude, lng: pos.coords.longitude },
-            content: reader.result
-          });
-          alert("Video saved.");
-        });
-      };
-      reader.readAsDataURL(file);
-    }
-  });
-});
-
-
-// === CONFIRM ON LEAVE PAGE ===
+// === CONFIRM ON PAGE LEAVE ===
 window.addEventListener("beforeunload", function (e) {
   if (trackingActive && routeData.length > 0) {
     e.preventDefault();
@@ -286,23 +195,97 @@ function resetApp() {
   stopAutoBackup();
   localStorage.removeItem("route_backup");
 
-  console.log("🧹 App fully reset — ready for a new session!");
+  console.log("🧹 App fully reset and ready!");
 }
+// === MEDIA CAPTURE ===
+window.capturePhoto = () => document.getElementById("photoInput").click();
+window.captureVideo = () => document.getElementById("videoInput").click();
 
-// === SHOW SUMMARY AFTER STOP ===
-function showSummary() {
-  alert(`🏁 Route Completed!\nDistance: ${totalDistance.toFixed(2)} km\nTime: ${document.getElementById("timer").textContent}`);
-}
+window.addTextNote = function () {
+  const note = prompt("Enter your note:");
+  if (note) {
+    navigator.geolocation.getCurrentPosition(position => {
+      routeData.push({
+        type: "text",
+        timestamp: Date.now(),
+        coords: { lat: position.coords.latitude, lng: position.coords.longitude },
+        content: note
+      });
+      alert("📝 Note saved successfully!");
+    });
+  }
+};
 
-// === HELPER FUNCTION: Distance Calculation ===
-function haversineDistance(coord1, coord2) {
-  const R = 6371; // Earth radius in KM
-  const toRad = deg => deg * Math.PI / 180;
-  const dLat = toRad(coord2.lat - coord1.lat);
-  const dLng = toRad(coord2.lng - coord1.lng);
-  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(coord1.lat)) * Math.cos(toRad(coord2.lat)) * Math.sin(dLng / 2) ** 2;
-  return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
-}
+window.startAudioRecording = function () {
+  navigator.mediaDevices.getUserMedia({ audio: true })
+    .then(stream => {
+      mediaRecorder = new MediaRecorder(stream);
+      audioChunks = [];
+
+      mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+        const reader = new FileReader();
+        reader.onload = () => {
+          navigator.geolocation.getCurrentPosition(pos => {
+            routeData.push({
+              type: "audio",
+              timestamp: Date.now(),
+              coords: { lat: pos.coords.latitude, lng: pos.coords.longitude },
+              content: reader.result
+            });
+            alert("🎙️ Audio saved successfully!");
+          });
+        };
+        reader.readAsDataURL(audioBlob);
+      };
+
+      mediaRecorder.start();
+      setTimeout(() => mediaRecorder.stop(), 5000);
+    })
+    .catch(() => alert("⚠️ Microphone access denied"));
+};
+
+// === MEDIA INPUT EVENTS ===
+window.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("photoInput").addEventListener("change", e => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        navigator.geolocation.getCurrentPosition(pos => {
+          routeData.push({
+            type: "photo",
+            timestamp: Date.now(),
+            coords: { lat: pos.coords.latitude, lng: pos.coords.longitude },
+            content: reader.result
+          });
+          alert("📸 Photo saved successfully!");
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  document.getElementById("videoInput").addEventListener("change", e => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        navigator.geolocation.getCurrentPosition(pos => {
+          routeData.push({
+            type: "video",
+            timestamp: Date.now(),
+            coords: { lat: pos.coords.latitude, lng: pos.coords.longitude },
+            content: reader.result
+          });
+          alert("🎬 Video saved successfully!");
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+});
 // === SAVE SESSION ===
 window.saveSession = function () {
   const name = prompt("Enter a name for this route:");
@@ -323,10 +306,11 @@ window.saveSession = function () {
   localStorage.removeItem("route_backup");
 
   alert("✅ Route saved successfully!");
+
   loadSavedSessions();
 };
 
-// === LOAD SAVED SESSIONS LIST (IN MAIN SCREEN) ===
+// === LOAD SESSION LIST ===
 window.loadSavedSessions = function () {
   const list = document.getElementById("savedSessionsList");
   if (!list) return;
@@ -336,14 +320,14 @@ window.loadSavedSessions = function () {
   sessions.forEach((session, index) => {
     const li = document.createElement("li");
     li.innerHTML = `
-      <strong>${session.name}</strong>
-      <button onclick="loadSession(${index})">View</button>
-    `;
+      <strong>${session.name}</strong> 
+      (${session.distance} km, ${session.time})
+      <button onclick="loadSession(${index})">View</button>`;
     list.appendChild(li);
   });
 };
 
-// === LOAD A SPECIFIC SESSION ===
+// === LOAD SPECIFIC SESSION ===
 window.loadSession = function (index) {
   const sessions = JSON.parse(localStorage.getItem("sessions") || "[]");
   const session = sessions[index];
@@ -368,48 +352,14 @@ window.loadSession = function (index) {
   });
 };
 
-// === DRAW THE ROUTE PATH ===
-function drawSavedRoutePath() {
-  if (path.length > 1) {
-    new google.maps.Polyline({
-      path,
-      geodesic: true,
-      strokeColor: "#00FF00",
-      strokeOpacity: 1.0,
-      strokeWeight: 3,
-      map
-    });
-
-    map.setCenter(path[0]);
-    marker.setPosition(path[0]);
-  }
-}
-
-// === VIEW HISTORY PANEL ===
-window.openHistory = function () {
-  const list = document.getElementById("historyList");
-  if (!list) return;
-  list.innerHTML = "";
-
-  const sessions = JSON.parse(localStorage.getItem("sessions") || "[]");
-  sessions.forEach((session, index) => {
-    const li = document.createElement("li");
-    li.innerHTML = `<b>${session.name}</b> (${session.distance} km, ${session.time})
-    <button onclick="loadSession(${index})">View</button>`;
-    list.appendChild(li);
-  });
-
-  document.getElementById("historyPanel").style.display = "block";
-};
-
-// === CLOSE HISTORY PANEL ===
-window.closeHistory = function () {
-  document.getElementById("historyPanel").style.display = "none";
+// === DARK MODE TOGGLE ===
+window.toggleDarkMode = function () {
+  document.body.classList.toggle("dark-mode");
 };
 
 // === CLEAR ALL SAVED SESSIONS ===
 window.clearAllSessions = function () {
-  const confirmClear = confirm("⚠️ Are you sure you want to clear ALL saved routes? This cannot be undone!");
+  const confirmClear = confirm("⚠️ Are you sure you want to clear all saved routes? This cannot be undone!");
   if (confirmClear) {
     localStorage.removeItem("sessions");
     localStorage.removeItem("route_backup");
@@ -417,14 +367,18 @@ window.clearAllSessions = function () {
     if (document.getElementById("historyList")) {
       document.getElementById("historyList").innerHTML = "";
     }
-    alert("✅ All saved routes have been cleared!");
+    alert("✅ All saved routes cleared!");
   }
 };
-// === DARK MODE TOGGLE ===
-window.toggleDarkMode = function () {
-  document.body.classList.toggle("dark-mode");
-};
 
+// === CONFIRM ON LEAVING PAGE ===
+window.addEventListener("beforeunload", function (e) {
+  if (trackingActive && routeData.length > 0) {
+    e.preventDefault();
+    e.returnValue = '';
+    return '';
+  }
+});
 // === FULLSCREEN MEDIA VIEWER ===
 window.showMediaFullScreen = function (content, type) {
   const overlay = document.createElement("div");
@@ -433,7 +387,7 @@ window.showMediaFullScreen = function (content, type) {
   overlay.style.left = 0;
   overlay.style.width = "100%";
   overlay.style.height = "100%";
-  overlay.style.background = "rgba(0, 0, 0, 0.8)";
+  overlay.style.background = "rgba(0,0,0,0.8)";
   overlay.style.display = "flex";
   overlay.style.alignItems = "center";
   overlay.style.justifyContent = "center";
@@ -459,9 +413,9 @@ window.showMediaFullScreen = function (content, type) {
 
   overlay.appendChild(media);
   document.body.appendChild(overlay);
-}
+};
 
-// === MEDIA HELPER (SHOW MAP NOTES) ===
+// === SHOW ROUTE DATA (Map Notes) ===
 function showRouteDataOnMap() {
   if (noteMarkers.length > 0) {
     noteMarkers.forEach(marker => marker.setMap(null));
@@ -524,7 +478,8 @@ function showRouteDataOnMap() {
     map.fitBounds(bounds);
   }
 }
-// === EXPORT JSON ===
+
+// === EXPORT JSON FILE ===
 window.exportData = function () {
   const fileName = `route-${new Date().toISOString()}.json`;
   const blob = new Blob([JSON.stringify(routeData, null, 2)], { type: "application/json" });
@@ -537,11 +492,11 @@ window.exportData = function () {
   document.body.removeChild(link);
 };
 
-// === EXPORT GPX ===
+// === EXPORT GPX FILE ===
 window.exportGPX = function () {
   let gpx = `<?xml version="1.0" encoding="UTF-8"?>
 <gpx version="1.1" creator="NatureTracker" xmlns="http://www.topografix.com/GPX/1/1">
-  <trk><name>Route</name><trkseg>\n`;
+<trk><name>Route</name><trkseg>\n`;
 
   routeData.filter(e => e.type === "location").forEach(e => {
     gpx += `<trkpt lat="${e.coords.lat}" lon="${e.coords.lng}">
@@ -560,7 +515,7 @@ window.exportGPX = function () {
   document.body.removeChild(link);
 };
 
-// === EXPORT PDF ===
+// === EXPORT PDF FILE ===
 window.exportPDF = async function () {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
@@ -579,19 +534,16 @@ window.exportPDF = async function () {
 
     if (entry.type === "text") {
       doc.text(`Note: ${entry.content}`, 10, y); y += 10;
-    }
-    else if (entry.type === "photo") {
+    } else if (entry.type === "photo") {
       try {
         doc.addImage(entry.content, "JPEG", 10, y, 50, 40);
         y += 50;
       } catch {
         doc.text("Photo not embedded", 10, y); y += 10;
       }
-    }
-    else if (entry.type === "audio") {
+    } else if (entry.type === "audio") {
       doc.text("Audio note recorded (not embeddable)", 10, y); y += 10;
-    }
-    else if (entry.type === "video") {
+    } else if (entry.type === "video") {
       doc.text("Video recorded (not embeddable)", 10, y); y += 10;
     }
   }
@@ -599,124 +551,38 @@ window.exportPDF = async function () {
   doc.save(`route-${Date.now()}.pdf`);
 };
 
-// === EXPORT ROUTE SUMMARY EXPLORER ===
-window.exportRouteSummary = async function () {
-  if (!routeData || routeData.length === 0) {
-    alert("No route data available to export.");
-    return;
-  }
+// === SHAREABLE LINK GENERATION ===
+window.generateShareableLink = function () {
+  const json = JSON.stringify(routeData);
+  const base64 = btoa(json);
+  const url = `${location.origin}${location.pathname}?data=${encodeURIComponent(base64)}`;
 
-  const zip = new JSZip();
-  const notesFolder = zip.folder("notes");
-  const imagesFolder = zip.folder("images");
-  const audioFolder = zip.folder("audio");
+  navigator.clipboard.writeText(url)
+    .then(() => alert("✅ Shareable link copied to clipboard!"));
+};
 
-  let markersJS = "";
-  let pathCoords = [];
-  let noteCounter = 1;
-  let photoCounter = 1;
-  let audioCounter = 1;
+// === SHARED LINK HANDLER ON PAGE LOAD ===
+window.onload = function () {
+  const params = new URLSearchParams(window.location.search);
+  const base64Data = params.get("data");
 
-  for (const entry of routeData) {
-    if (entry.type === "location") {
-      pathCoords.push([entry.coords.lat, entry.coords.lng]);
-    } else if (entry.type === "text") {
-      notesFolder.file(`note${noteCounter}.txt`, entry.content);
-      markersJS += `
-L.marker([${entry.coords.lat}, ${entry.coords.lng}])
-  .addTo(map)
-  .bindPopup("<b>Note ${noteCounter}</b><br>${entry.content}");`;
-      noteCounter++;
-    } else if (entry.type === "photo") {
-      const base64Data = entry.content.split(",")[1];
-      imagesFolder.file(`photo${photoCounter}.jpg`, base64Data, { base64: true });
-      markersJS += `
-L.marker([${entry.coords.lat}, ${entry.coords.lng}])
-  .addTo(map)
-  .bindPopup("<b>Photo ${photoCounter}</b><br><img src='images/photo${photoCounter}.jpg' style='width:200px' onclick='showFullScreen(this)'>");`;
-      photoCounter++;
-    } else if (entry.type === "audio") {
-      const base64Data = entry.content.split(",")[1];
-      audioFolder.file(`audio${audioCounter}.webm`, base64Data, { base64: true });
-      markersJS += `
-L.marker([${entry.coords.lat}, ${entry.coords.lng}])
-  .addTo(map)
-  .bindPopup("<b>Audio ${audioCounter}</b><br><audio controls src='audio/audio${audioCounter}.webm'></audio>");`;
-      audioCounter++;
+  if (base64Data) {
+    try {
+      const json = atob(base64Data);
+      const sharedData = JSON.parse(json);
+      routeData = sharedData;
+      alert("✅ Shared route loaded!");
+
+      path = routeData.filter(e => e.type === "location").map(e => e.coords);
+      initMap(() => {
+        drawSavedRoutePath();
+        showRouteDataOnMap();
+      });
+    } catch (e) {
+      console.error("Invalid share data.");
     }
+  } else {
+    loadSavedSessions();
   }
+};
 
-  const htmlContent = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Route Summary</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
-<style>
-#map { height: 100vh; margin: 0; }
-#summaryPanel {
-  position: absolute; top: 10px; right: 10px;
-  background: white; padding: 10px; border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.3); font-size: 14px;
-}
-</style>
-</head>
-<body>
-<div id="map"></div>
-<div id="summaryPanel">
-  <b>Distance:</b> ${totalDistance.toFixed(2)} km<br>
-  <b>Photos:</b> ${photoCounter - 1}<br>
-  <b>Notes:</b> ${noteCounter - 1}<br>
-  <b>Audios:</b> ${audioCounter - 1}<br>
-</div>
-<script>
-var map = L.map('map').setView([${pathCoords[0][0]}, ${pathCoords[0][1]}], 15);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  maxZoom: 19,
-  attribution: '&copy; OpenStreetMap contributors'
-}).addTo(map);
-
-var route = L.polyline(${JSON.stringify(pathCoords)}, { color: 'blue' }).addTo(map);
-map.fitBounds(route.getBounds());
-
-${markersJS}
-
-// Fullscreen photo viewer
-function showFullScreen(img) {
-  var overlay = document.createElement("div");
-  overlay.style.position = "fixed";
-  overlay.style.top = 0;
-  overlay.style.left = 0;
-  overlay.style.width = "100%";
-  overlay.style.height = "100%";
-  overlay.style.background = "rgba(0,0,0,0.9)";
-  overlay.style.display = "flex";
-  overlay.style.alignItems = "center";
-  overlay.style.justifyContent = "center";
-  overlay.style.zIndex = "9999";
-  overlay.onclick = () => document.body.removeChild(overlay);
-
-  var fullImg = document.createElement("img");
-  fullImg.src = img.src;
-  fullImg.style.maxWidth = "90%";
-  fullImg.style.maxHeight = "90%";
-  overlay.appendChild(fullImg);
-  document.body.appendChild(overlay);
-}
-</script>
-</body>
-</html>
-`;
-
-  zip.file("index.html", htmlContent);
-
-  const blob = await zip.generateAsync({ type: "blob" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `route-summary-${Date.now()}.zip`;
-  a.click();
-}
